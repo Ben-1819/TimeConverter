@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Batch;
+use App\Http\Requests\StoreBatchRequest;
+use App\Http\Requests\UpdateBatchRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
@@ -25,7 +27,7 @@ class BatchController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreBatchRequest $request)
     {
         Log::info("BatchController store method running");
 
@@ -62,7 +64,7 @@ class BatchController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(UpdateBatchRequest $request, $id)
     {
         Log::info("BatchController update method running");
 
