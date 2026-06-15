@@ -4,10 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\Time;
 use Illuminate\Http\Request;
+use App\Http\Controllers\TimeHelperMethods;
 use Illuminate\Support\Facades\Log;
 
 class TimeController extends Controller
 {
+    protected $timeHelpers;
+    public function __construct(TimeHelperMethods $timeHelpers)
+    {
+        $this->timeHelpers = $timeHelpers;
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -16,6 +23,10 @@ class TimeController extends Controller
         Log::info('Index method in Time Controller running');
 
         $times = Time::all();
+
+        $times->each(function ($time) {
+            $time->time_values = $this->timeHelpers->hoursMinutesSeconds($time->length_seconds);
+        });
 
         return response()->json([
             'times' => $times,
@@ -28,6 +39,10 @@ class TimeController extends Controller
         Log::info('Times by batch method in Time Controller running');
 
         $timesByBatch = Time::where('batch_id', $batchId)->get();
+
+        $timesByBatch->each(function ($time) {
+            $time->time_values = $this->timeHelpers->hoursMinutesSeconds($time->length_seconds);
+        });
 
         $successMessage = count($timesByBatch) > 0 ? 'Times for batch ' . $batchId . ' retrieved successfully' : 'No times found for batch ' . $batchId;
 
@@ -46,11 +61,14 @@ class TimeController extends Controller
 
         $request->validated();
 
+        $seconds = $this->timeHelpers->getSeconds($request['hours'], $request['minutes'], $request['seconds']);
+
         $time = Time::create([
             'batch_number' => $request['batch_number'],
-            'length_seconds' => $request['length_in_seconds']
+            'length_seconds' => $seconds
         ]);
         $time->save();
+        $time->time_values = $this->timeHelpers->hoursMinutesSeconds($time->length_seconds);
 
         $successMessage = 'New time entry created in batch: ' . $request['batch_number'];
 
@@ -68,6 +86,7 @@ class TimeController extends Controller
         Log::info('Show method in Time Controller running');
 
         $time = Time::find($id);
+        $time->time_values = $this->timeHelpers->hoursMinutesSeconds($time->length_seconds);
 
         return response()->json([
             'time' => $time,
@@ -86,13 +105,21 @@ class TimeController extends Controller
 
         $oldTime = Time::find($id);
 
+        if ($request['hours'] && $request['minutes'] && $request['seconds']) {
+            $seconds = $this->timeHelpers->getSeconds($request['hours'], $request['minutes'], $request['seconds']);
+        } else {
+            $seconds = $oldTime->length_seconds;
+        }
+
+
+
         $updatedTime = Time::where('id', $id)->update([
             'batch_number' => $request['batch_number'] ?? $oldTime->batch_number,
-            'length_seconds' => $request['length_in_seconds'] ?? $oldTime->batch_number
+            'length_seconds' => $seconds
         ]);
 
         return response()->json([
-            'updated_time' => $updatedTime,
+            'updatedTime' => $updatedTime,
             'successMessage' => 'Time updated successfully'
         ], 200);
     }

@@ -5,19 +5,34 @@ namespace App\Http\Controllers;
 use App\Models\Batch;
 use App\Http\Requests\StoreBatchRequest;
 use App\Http\Requests\UpdateBatchRequest;
+use App\Http\Controllers\TimeHelperMethods;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class BatchController extends Controller
 {
+    protected $timeHelpers;
+
+    public function __controller(TimeHelperMethods $timeHelpers)
+    {
+        $this->timeHelpers = $timeHelpers;
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
         Log::info("BatchController index method running");
-        $batches = Batch::all();
+        $batches = Batch::withSum('times as total_seconds', 'length_seconds')
+            ->latest()
+            ->get();
+
+        $batches->each(function ($batch) {
+            $batch->total_time = $this->timeHelpers->hoursMinutesSeconds($batch->total_seconds ?? 0);
+        });
+
         return response()->json([
             "batches" => $batches,
             "successMessage" => "All batches retrieved successfully"
@@ -54,6 +69,7 @@ class BatchController extends Controller
         Log::info("BatchController show method running");
 
         $batch = Batch::find($id);
+        $batch->total_time = $batch->Times()->sum('length_seconds');
 
         return response()->json([
             "batch" => $batch,
