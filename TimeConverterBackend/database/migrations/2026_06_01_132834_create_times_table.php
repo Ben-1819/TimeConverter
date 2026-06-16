@@ -12,7 +12,7 @@ return new class extends Migration {
     {
         Schema::create('times', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('batch_number')->constrained()->onDelete('cascade');
+            $table->foreignId('batch_id')->constrained('batches')->onDelete('cascade');
             $table->integer('length_seconds');
             $table->timestamps();
         });
