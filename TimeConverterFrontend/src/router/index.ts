@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import Home from '@/views/Home.vue';
 import BatchMenu from '@/views/BatchMenu.vue';
+import TimeMenu from '@/views/TimeMenu.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -14,6 +15,11 @@ const router = createRouter({
       path: '/BatchMenu',
       name: 'Batch Menu',
       component: BatchMenu,
+    },
+    {
+      path: '/TimeMenu',
+      name: 'Time Menu',
+      component: TimeMenu,
     },
   ],
 });
